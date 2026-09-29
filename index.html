@@ -3,108 +3,271 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Fairway 3D - Ultimate Edition</title>
+<title>Fairway 3D - Infinite Championship Edition</title>
 <style>
-:root{--deep:#0a2218;--grass:#1b4d3e;--chalk:#eef3e6;--flag:#ff4757;--gold:#ffa502;--accent:#2ed573}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;background:#a4b0be;color:var(--chalk);font:15px/1.4 "Segoe UI",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
-canvas{display:block;touch-action:none}
+:root {
+  --deep: #061510;
+  --grass: #1b4d3e;
+  --chalk: #eef3e6;
+  --flag: #ff4757;
+  --gold: #ffa502;
+  --accent: #2ed573;
+  --cyber: #00d2d3;
+  --purple: #9b59b6;
+  --fire: #ff6b6b;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: #0f172a; color: var(--chalk);
+  font: 13px/1.4 "Segoe UI", system-ui, -apple-system, sans-serif;
+  user-select: none; -webkit-user-select: none;
+}
+canvas { display: block; touch-action: none; }
 
-/* HUD */
-#hud{position:fixed;top:12px;left:12px;background:rgba(10,34,24,0.85);backdrop-filter:blur(8px);padding:10px 16px;border-radius:12px;display:grid;grid-template-columns:repeat(5,auto);gap:2px 16px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-#hud small{opacity:.7;font-size:.7em;text-transform:uppercase;letter-spacing:1px}
-#hud b{font-size:1.3em;font-weight:800;display:block;color:#fff}
-#hud b.cash{color:var(--gold)}
+/* HUD TOP BAR */
+#hud {
+  position: fixed; top: 10px; left: 10px; right: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+  pointer-events: none; z-index: 10; gap: 8px; flex-wrap: wrap;
+}
+.hud-card {
+  background: rgba(6, 21, 16, 0.88); backdrop-filter: blur(12px);
+  padding: 6px 12px; border-radius: 14px;
+  display: flex; gap: 12px; align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); pointer-events: auto;
+}
+.hud-item { text-align: center; }
+.hud-item small { opacity: 0.7; font-size: 0.65em; text-transform: uppercase; letter-spacing: 0.8px; display: block; }
+.hud-item b { font-size: 1.15em; font-weight: 800; display: block; color: #fff; }
+.hud-item b.cash { color: var(--gold); }
+.hud-item b.gems { color: var(--cyber); }
 
-#msg{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--flag);color:#fff;font-weight:800;padding:10px 24px;border-radius:99px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(255,71,87,0.4);font-size:1.1em}
-#msg.on{opacity:1;transform:translateX(-50%) translateY(6px)}
+/* WIND INDICATOR */
+#wind-widget { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+#wind-arrow { display: inline-block; font-size: 1.2em; transition: transform 0.3s ease; color: var(--cyber); }
 
-#pw{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:min(320px,60vw);height:14px;background:rgba(10,34,24,0.7);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.2)}
-#pw i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold),var(--flag));transition:width .05s linear}
+/* TOP RIGHT ACTIONS */
+.hud-actions { display: flex; gap: 6px; pointer-events: auto; }
+.icon-btn {
+  background: rgba(6, 21, 16, 0.88); backdrop-filter: blur(10px);
+  color: var(--chalk); border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px; padding: 6px 10px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: all 0.2s ease; font-size: 0.85em;
+}
+.icon-btn:hover { background: var(--grass); transform: translateY(-2px); }
 
-#hint{position:fixed;bottom:48px;left:50%;transform:translateX(-50%);font-size:.85em;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8);text-align:center;width:90%;pointer-events:none;font-weight:600}
+/* POWERUPS TOOLBAR */
+#powerups {
+  position: fixed; left: 10px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 10;
+}
+.pwr-btn {
+  background: rgba(6, 21, 16, 0.9); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2); color: white;
+  border-radius: 12px; padding: 8px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 62px; font-size: 0.7em; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: all 0.2s; position: relative;
+}
+.pwr-btn:hover:not(:disabled) { border-color: var(--gold); transform: scale(1.05); }
+.pwr-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+.pwr-btn span.icon { font-size: 1.4em; }
+.pwr-btn.active-pwr { border-color: var(--accent); box-shadow: 0 0 12px var(--accent); }
 
-/* ACTION BUTTONS */
-#controls{position:fixed;bottom:16px;right:16px;display:flex;gap:10px}
-#controls button,#card button,.shop-btn{background:rgba(10,34,24,0.85);backdrop-filter:blur(6px);color:var(--chalk);border:1px solid rgba(255,255,255,0.15);border-radius:12px;font:inherit;font-weight:700;padding:12px 16px;cursor:pointer;touch-action:manipulation;transition:all .2s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
-#controls button:hover,.shop-btn:hover,#card button:hover{background:var(--grass);transform:translateY(-2px)}
-#controls button:active,.shop-btn:active,#card button:active{transform:translateY(0)}
+/* MESSAGES & NOTIFICATIONS */
+#msg {
+  position: fixed; top: 65px; left: 50%; transform: translateX(-50%);
+  background: var(--flag); color: #fff; font-weight: 800; padding: 8px 22px;
+  border-radius: 99px; opacity: 0; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none; white-space: nowrap; box-shadow: 0 6px 20px rgba(255,71,87,0.4);
+  font-size: 1.1em; z-index: 20;
+}
+#msg.on { opacity: 1; transform: translateX(-50%) translateY(8px); }
 
-/* SHOP MODAL */
-#shop,#card{position:fixed;inset:0;display:none;place-items:center;background:rgba(5,15,10,0.8);backdrop-filter:blur(10px);z-index:100}
-#shop.on,#card.on{display:grid}
-.modal-box{background:var(--deep);padding:24px;border-radius:20px;width:min(520px,92vw);max-height:85vh;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.15);box-shadow:0 16px 40px rgba(0,0,0,0.5)}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.modal-header h2{margin:0;font-size:1.6em;color:var(--chalk)}
-.close-btn{background:none!important;border:none!important;color:#aaa!important;font-size:1.6em!important;cursor:pointer;padding:0 8px!important}
+/* POWER GAUGE & HINT */
+#pw {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  width: min(340px, 62vw); height: 16px; background: rgba(6,21,16,0.8);
+  border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+#pw i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--gold), var(--flag)); }
+#hint {
+  position: fixed; bottom: 42px; left: 50%; transform: translateX(-50%);
+  font-size: 0.8em; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+  text-align: center; width: 90%; pointer-events: none; font-weight: 600;
+}
 
-.shop-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px}
-.tab-btn{background:transparent;border:none;color:#aaa;font-weight:700;padding:8px 16px;cursor:pointer;border-radius:8px;transition:0.2s}
-.tab-btn.active{background:rgba(255,255,255,0.1);color:#fff}
+/* CAMERA CONTROLS */
+#controls { position: fixed; bottom: 16px; right: 16px; display: flex; gap: 8px; z-index: 10; }
+#controls button {
+  background: rgba(6, 21, 16, 0.88); backdrop-filter: blur(8px);
+  color: var(--chalk); border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px; font: inherit; font-weight: 700; width: 44px; height: 44px;
+  cursor: pointer; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: all 0.15s;
+}
+#controls button:active { transform: scale(0.92); }
 
-.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;overflow-y:auto;padding-right:4px;max-height:50vh}
-.shop-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;gap:8px;transition:0.2s}
-.shop-item.selected{border-color:var(--accent);background:rgba(46,213,115,0.08)}
-.shop-item h4{margin:0;font-size:1em;color:#fff}
-.shop-item p{margin:0;font-size:.75em;opacity:.7}
-.shop-item .price{font-weight:800;color:var(--gold);font-size:.9em}
-.item-btn{width:100%;padding:8px;border-radius:8px;border:none;font-weight:700;cursor:pointer;background:var(--accent);color:#000;transition:0.2s}
-.item-btn.equipped{background:rgba(255,255,255,0.2);color:#fff;cursor:default}
-.item-btn.buy{background:var(--gold);color:#000}
+/* MODALS */
+.modal {
+  position: fixed; inset: 0; display: none; place-items: center;
+  background: rgba(4, 15, 10, 0.85); backdrop-filter: blur(14px); z-index: 100;
+}
+.modal.on { display: grid; }
+.modal-box {
+  background: var(--deep); padding: 22px; border-radius: 20px;
+  width: min(560px, 94vw); max-height: 88vh; display: flex; flex-direction: column;
+  border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.modal-header h2 { margin: 0; font-size: 1.5em; color: #fff; }
+.close-btn { background: none!important; border: none!important; color: #aaa!important; font-size: 1.5em!important; cursor: pointer; }
 
-/* SCORECARD TABLE */
-#card table{width:100%;border-collapse:collapse;margin:16px 0}
-#card td,#card th{padding:8px 12px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1)}
-#card th{color:#aaa;font-size:.8em;text-transform:uppercase}
+.shop-tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; overflow-x: auto; }
+.tab-btn { background: transparent; border: none; color: #aaa; font-weight: 700; padding: 6px 14px; cursor: pointer; border-radius: 8px; transition: 0.2s; font-size: 0.85em; }
+.tab-btn.active { background: rgba(255,255,255,0.12); color: var(--gold); }
+
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 10px; overflow-y: auto; max-height: 54vh; padding-right: 4px; }
+.shop-item {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 10px; text-align: center; display: flex; flex-direction: column;
+  justify-content: space-between; gap: 6px; transition: 0.2s;
+}
+.shop-item.selected { border-color: var(--accent); background: rgba(46,213,115,0.12); }
+.shop-item h4 { margin: 0; font-size: 0.9em; color: #fff; }
+.shop-item p { margin: 0; font-size: 0.7em; opacity: 0.75; }
+.shop-item .price { font-weight: 800; color: var(--gold); font-size: 0.85em; }
+.item-btn { width: 100%; padding: 6px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; background: var(--accent); color: #000; font-size: 0.8em; }
+.item-btn.equipped { background: rgba(255,255,255,0.18); color: #fff; cursor: default; }
+.item-btn.buy { background: var(--gold); color: #000; }
+
+.achieve-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 58vh; }
+.achieve-card {
+  background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 14px;
+  display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);
+}
+.achieve-card.done { border-color: var(--gold); background: rgba(255,165,2,0.1); }
+.achieve-info h4 { margin: 0 0 2px; font-size: 0.95em; }
+.achieve-info p { margin: 0; font-size: 0.75em; opacity: 0.7; }
+
+table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+td, th { padding: 6px 10px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85em; }
+th { color: #aaa; font-size: 0.75em; text-transform: uppercase; }
 </style>
 </head>
 <body>
 
+<!-- TOP HUD -->
 <div id="hud">
-  <span><small>Hole</small><b id="h">1</b></span>
-  <span><small>Par</small><b id="p">3</b></span>
-  <span><small>Strokes</small><b id="s">0</b></span>
-  <span><small>Total</small><b id="t">E</b></span>
-  <span><small>Cash</small><b id="c" class="cash">$0</b></span>
+  <div class="hud-card">
+    <div class="hud-item"><small>Hole</small><b id="h">#1</b></div>
+    <div class="hud-item"><small>Par</small><b id="p">3</b></div>
+    <div class="hud-item"><small>Strokes</small><b id="s">0</b></div>
+    <div class="hud-item"><small>Total</small><b id="t">E</b></div>
+    <div class="hud-item"><small>Cash</small><b id="c" class="cash">$0</b></div>
+    <div class="hud-item"><small>Gems</small><b id="g" class="gems">💎0</b></div>
+  </div>
+
+  <div class="hud-card" id="wind-widget">
+    <small style="opacity:0.7">WIND</small>
+    <span id="wind-arrow">↑</span>
+    <span id="wind-speed">0 mph</span>
+  </div>
+
+  <div class="hud-actions">
+    <button class="icon-btn" id="open-achieve">🏆 Badges</button>
+    <button class="icon-btn" id="open-shop">🛒 Shop</button>
+    <button class="icon-btn" id="mute-btn">🔊</button>
+  </div>
+</div>
+
+<!-- SIDE POWERUPS TOOLBAR -->
+<div id="powerups">
+  <button class="pwr-btn" id="pwr-brake" title="Instant Brake Stop ($25)">
+    <span class="icon">🛑</span>
+    <span>Brake</span>
+    <small>$25</small>
+  </button>
+  <button class="pwr-btn" id="pwr-laser" title="Precision Laser Line ($40)">
+    <span class="icon">🎯</span>
+    <span>Aim Pro</span>
+    <small>$40</small>
+  </button>
+  <button class="pwr-btn" id="pwr-magnet" title="Cup Gravity Pull ($60)">
+    <span class="icon">🧲</span>
+    <span>Magnet</span>
+    <small>$60</small>
+  </button>
+  <button class="pwr-btn" id="pwr-jump" title="Air Bounce Jump ($50)">
+    <span class="icon">🚀</span>
+    <span>Jump</span>
+    <small>$50</small>
+  </button>
+  <button class="pwr-btn" id="pwr-ghost" title="Phase Through Walls ($75)">
+    <span class="icon">👻</span>
+    <span>Ghost</span>
+    <small>$75</small>
+  </button>
+  <button class="pwr-btn" id="pwr-mulligan" title="Mulligan Undo Shot ($90)">
+    <span class="icon">↺</span>
+    <span>Undo</span>
+    <small>$90</small>
+  </button>
 </div>
 
 <div id="msg"></div>
-<div id="hint">Drag back anywhere to aim & power up • Release to shoot</div>
+<div id="hint">Drag back to aim & power up • Release to shoot</div>
 <div id="pw"><i></i></div>
 
+<!-- CAMERA CONTROLS -->
 <div id="controls">
   <button id="l" aria-label="Rotate left">◀</button>
   <button id="re-center" aria-label="Face cup">🎯</button>
   <button id="r" aria-label="Rotate right">▶</button>
-  <button id="open-shop" class="shop-btn">🛒 Shop</button>
 </div>
 
 <!-- SHOP MODAL -->
-<div id="shop">
+<div id="shop" class="modal">
   <div class="modal-box">
     <div class="modal-header">
       <h2>Pro Shop</h2>
-      <button class="close-btn" id="close-shop">✕</button>
+      <button class="close-btn close-modal">✕</button>
     </div>
     <div class="shop-tabs">
       <button class="tab-btn active" data-tab="balls">Balls</button>
       <button class="tab-btn" data-tab="clubs">Clubs</button>
       <button class="tab-btn" data-tab="golfers">Golfers</button>
+      <button class="tab-btn" data-tab="trails">Trails</button>
     </div>
     <div id="shop-items" class="shop-grid"></div>
   </div>
 </div>
 
+<!-- ACHIEVEMENTS MODAL -->
+<div id="achieve-modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Trophies & Milestones</h2>
+      <button class="close-btn close-modal">✕</button>
+    </div>
+    <div class="achieve-list" id="achieve-items"></div>
+  </div>
+</div>
+
 <!-- SCORECARD MODAL -->
-<div id="card">
+<div id="card" class="modal">
   <div class="modal-box" style="text-align:center;">
-    <h2 id="card-title">Round Complete!</h2>
-    <div id="card-payout" style="color:var(--gold);font-weight:bold;font-size:1.2em;margin-top:4px;"></div>
+    <h2 id="card-title">Hole Complete!</h2>
+    <div id="card-payout" style="color:var(--gold);font-weight:bold;font-size:1.25em;margin-top:4px;"></div>
     <table>
-      <thead><tr><th>Hole</th><th>Par</th><th>Strokes</th></tr></thead>
+      <thead><tr><th>Hole</th><th>Par</th><th>Strokes</th><th>Collected Gems</th></tr></thead>
       <tbody id="card-rows"></tbody>
     </table>
-    <button id="again" style="width:100%;margin-top:10px;background:var(--accent);color:#000;">Play Again</button>
+    <button id="again" style="width:100%;margin-top:10px;padding:12px;background:var(--accent);border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:1em;">Play Next Infinite Hole ➔</button>
   </div>
 </div>
 
@@ -112,119 +275,159 @@ canvas{display:block;touch-action:none}
 <script type="module">
 import * as THREE from 'three';
 
-// --- AUDIO SYNTHESIZER ---
+// --- SYNTHESIZED AUDIO SYSTEM ---
 class SoundEffects {
-  constructor() { this.ctx = null; }
+  constructor() { this.ctx = null; this.muted = false; }
   init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
   playHit(power) {
-    if (!this.ctx) return;
+    if (!this.ctx || this.muted) return;
     const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
-    osc.type = 'triangle'; osc.frequency.setValueAtTime(120 + power * 150, this.ctx.currentTime);
+    osc.type = 'triangle'; osc.frequency.setValueAtTime(140 + power * 220, this.ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.15);
     g.gain.setValueAtTime(0.5, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
     osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.15);
   }
   playBounce() {
-    if (!this.ctx) return;
+    if (!this.ctx || this.muted) return;
     const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
-    osc.type = 'sine'; osc.frequency.setValueAtTime(280, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.08);
+    osc.type = 'sine'; osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.08);
     g.gain.setValueAtTime(0.2, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
     osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.08);
   }
+  playCoin() {
+    if (!this.ctx || this.muted) return;
+    const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(987, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(1318, this.ctx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.25, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+    osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+  }
+  playJump() {
+    if (!this.ctx || this.muted) return;
+    const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.2);
+    g.gain.setValueAtTime(0.3, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+    osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+  }
   playSink() {
-    if (!this.ctx) return;
-    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+    if (!this.ctx || this.muted) return;
+    [523, 659, 783, 1046, 1318].forEach((f, i) => {
       const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
       osc.type = 'sine'; osc.frequency.value = f;
-      g.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.08);
-      g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.08 + 0.2);
+      g.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.07);
+      g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.07 + 0.2);
       osc.connect(g); g.connect(this.ctx.destination);
-      osc.start(this.ctx.currentTime + i * 0.08); osc.stop(this.ctx.currentTime + i * 0.08 + 0.2);
+      osc.start(this.ctx.currentTime + i * 0.07); osc.stop(this.ctx.currentTime + i * 0.07 + 0.2);
     });
   }
   playSplash() {
-    if (!this.ctx) return;
+    if (!this.ctx || this.muted) return;
     const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
-    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, this.ctx.currentTime);
     osc.frequency.linearRampToValueAtTime(30, this.ctx.currentTime + 0.3);
-    g.gain.setValueAtTime(0.3, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+    g.gain.setValueAtTime(0.35, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
     osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.3);
   }
   playBuy() {
-    if (!this.ctx) return;
+    if (!this.ctx || this.muted) return;
     const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
-    osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, this.ctx.currentTime);
-    osc.frequency.setValueAtTime(880, this.ctx.currentTime + 0.1);
-    g.gain.setValueAtTime(0.2, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
-    osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+    osc.type = 'sine'; osc.frequency.setValueAtTime(587, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(880, this.ctx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.2, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.22);
+    osc.connect(g); g.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.22);
   }
 }
 const sfx = new SoundEffects();
 
-// --- ITEM SHOP DATA ---
+// --- SHOP ITEMS CATALOG ---
 const SHOP_DATA = {
   balls: [
     { id: 'b_white', name: 'Classic White', price: 0, color: 0xffffff, boost: 1.0, desc: 'Standard golf ball.' },
-    { id: 'b_neon', name: 'Neon Lime', price: 150, color: 0x2ed573, boost: 1.05, desc: '+5% Shot Distance' },
-    { id: 'b_fire', name: 'Magma Orange', price: 350, color: 0xff4757, boost: 1.12, desc: '+12% Shot Distance' },
-    { id: 'b_gold', name: 'Solid Gold', price: 750, color: 0xffd700, boost: 1.25, desc: '+25% Max Power!' }
+    { id: 'b_neon', name: 'Neon Lime', price: 150, color: 0x2ed573, boost: 1.08, desc: '+8% Shot Velocity' },
+    { id: 'b_fire', name: 'Magma Orange', price: 350, color: 0xff4757, boost: 1.15, desc: '+15% Max Drive' },
+    { id: 'b_cyber', name: 'Cyber Void', price: 750, color: 0x00d2d3, boost: 1.3, desc: '+30% Cyber Speed Boost' },
+    { id: 'b_gold', name: 'Solid Gold', price: 1200, color: 0xffd700, boost: 1.45, desc: '+45% Extreme Power!' }
   ],
   clubs: [
-    { id: 'c_wood', name: 'Wooden Putter', price: 0, pwr: 1.0, color: 0x8b5a2b, desc: 'Reliable basic club.' },
-    { id: 'c_steel', name: 'Steel Pro', price: 200, pwr: 1.15, color: 0xc0c0c0, desc: '+15% Power Boost' },
-    { id: 'c_carbon', name: 'Carbon Fiber', price: 500, pwr: 1.3, color: 0x222222, desc: '+30% Power Boost' },
-    { id: 'c_cyber', name: 'Laser Putter', price: 1000, pwr: 1.5, color: 0x00d2d3, desc: '+50% Max Velocity!' }
+    { id: 'c_wood', name: 'Wooden Putter', price: 0, pwr: 1.0, color: 0x8b5a2b, desc: 'Basic standard club.' },
+    { id: 'c_steel', name: 'Steel Pro', price: 200, pwr: 1.15, color: 0xc0c0c0, desc: '+15% Swing Force' },
+    { id: 'c_carbon', name: 'Carbon Fiber', price: 500, pwr: 1.3, color: 0x222222, desc: '+30% Lightweight Drive' },
+    { id: 'c_laser', name: 'Plasma Putter', price: 900, pwr: 1.48, color: 0x00d2d3, desc: '+48% Energy Release' },
+    { id: 'c_titan', name: 'Titan Driver', price: 1500, pwr: 1.7, color: 0xffa502, desc: '+70% Ultimate Rocket Swing!' }
   ],
   golfers: [
-    { id: 'g_bob', name: 'Rookie Bob', price: 0, shirt: 0x2e86de, pants: 0x341f97, desc: 'Ready for golf.' },
-    { id: 'g_pro', name: 'Tiger Red', price: 250, shirt: 0xee5253, pants: 0x222f3e, desc: 'Tour Legend Style' },
-    { id: 'g_gold', name: 'Golden Champ', price: 600, shirt: 0xfabca3, pants: 0xffd700, desc: 'Pure Royalty' },
-    { id: 'g_cyber', name: 'Cyber Golfer', price: 1200, shirt: 0x00d2d3, pants: 0x54a0ff, desc: 'Futuristic Android' }
+    { id: 'g_bob', name: 'Rookie Bob', price: 0, shirt: 0x2e86de, pants: 0x341f97, desc: 'Classic golfer look.' },
+    { id: 'g_pro', name: 'Tiger Red', price: 250, shirt: 0xee5253, pants: 0x222f3e, desc: 'PGA Red Championship' },
+    { id: 'g_gold', name: 'Golden Champ', price: 600, shirt: 0xfabca3, pants: 0xffd700, desc: 'Royalty Golf Outfit' },
+    { id: 'g_cyber', name: 'Cyber Android', price: 1200, shirt: 0x00d2d3, pants: 0x54a0ff, desc: 'Futuristic Cybernetic Suit' },
+    { id: 'g_ninja', name: 'Shadow Ninja', price: 1800, shirt: 0x2d3436, pants: 0x1e272e, desc: 'Stealth Master Aesthetic' }
+  ],
+  trails: [
+    { id: 't_none', name: 'No Trail', price: 0, color: 0x000000, desc: 'Standard clean movement.' },
+    { id: 't_spark', name: 'Gold Sparkles', price: 300, color: 0xffd700, desc: 'Leaves a trail of golden light.' },
+    { id: 't_fire', name: 'Fire Engine', price: 600, color: 0xff4757, desc: 'Burning fiery flame trail.' },
+    { id: 't_cyber', name: 'Cyber Neon', price: 1000, color: 0x00d2d3, desc: 'Electric blue particle stream.' }
   ]
 };
 
+// --- ACHIEVEMENTS SYSTEM CATALOG ---
+const ACHIEVEMENTS = [
+  { id: 'first_sink', name: 'First Hole', desc: 'Sink your first hole', reward: 50 },
+  { id: 'hole_in_one', name: 'Ace Master', desc: 'Get a Hole-in-One', reward: 250 },
+  { id: 'gem_collector', name: 'Gem Collector', desc: 'Collect 10 💎 Gems on fairways', reward: 150 },
+  { id: 'reach_10', name: 'Marathoner', desc: 'Reach Hole #10 in Infinite Mode', reward: 300 },
+  { id: 'rich_golfer', name: 'High Roller', desc: 'Accumulate $1,500 in cash', reward: 400 }
+];
+
 let userState = {
   cash: 0,
-  owned: ['b_white', 'c_wood', 'g_bob'],
+  gems: 0,
+  owned: ['b_white', 'c_wood', 'g_bob', 't_none'],
   equippedBall: 'b_white',
   equippedClub: 'c_wood',
-  equippedGolfer: 'g_bob'
+  equippedGolfer: 'g_bob',
+  equippedTrail: 't_none',
+  achievements: [],
+  totalHolesCompleted: 0
 };
 
-// Load Saved Progress
 try {
-  const saved = localStorage.getItem('fairway3d_save');
+  const saved = localStorage.getItem('fairway3d_inf_save');
   if (saved) userState = Object.assign(userState, JSON.parse(saved));
 } catch(e){}
 
 function saveState() {
-  localStorage.setItem('fairway3d_save', JSON.stringify(userState));
+  localStorage.setItem('fairway3d_inf_save', JSON.stringify(userState));
   document.getElementById('c').textContent = '$' + userState.cash;
+  document.getElementById('g').textContent = '💎' + userState.gems;
+  checkAchievements();
 }
 
-// --- HOLES DATA (8 Challenging Levels) ---
-const HOLES = [
-  { w: 10, l: 30, par: 3, tee: [0, -2], cup: [0, -26], obs: [], water: [], sand: [] },
-  { w: 12, l: 34, par: 3, tee: [-3, -2], cup: [3, -31], obs: [[0, -16, 6, 1.5, 0]], water: [], sand: [[0, -22, 5, 4]] },
-  { w: 12, l: 36, par: 3, tee: [0, -2], cup: [3.5, -32], obs: [], water: [[-2.5, -18, 7, 6]], sand: [] },
-  { w: 14, l: 40, par: 4, tee: [-4, -2], cup: [4, -37], obs: [[-3, -13, 6, 1.2, 0], [3.5, -22, 6, 1.2, 0]], water: [[4.5, -8, 4, 3]], sand: [[-3, -30, 6, 4]] },
-  // Harder levels:
-  { w: 16, l: 44, par: 4, tee: [0, -2], cup: [5, -40], obs: [[0, -20, 2, 2, 2.5]], water: [[-4, -18, 6, 10]], sand: [[4, -26, 6, 6]] }, // moving obs
-  { w: 14, l: 48, par: 4, tee: [-4, -2], cup: [-4, -44], obs: [[0, -15, 8, 1.5, 0], [0, -32, 8, 1.5, 0]], water: [[3, -24, 7, 10]], sand: [[-4, -24, 5, 5]] },
-  { w: 18, l: 50, par: 5, tee: [0, -2], cup: [0, -46], obs: [[-4, -18, 3, 3, 3], [4, -30, 3, 3, -3]], water: [[-6, -38, 5, 8], [6, -38, 5, 8]], sand: [[0, -24, 6, 6]] },
-  { w: 16, l: 54, par: 5, tee: [0, -2], cup: [0, -50], obs: [[-3, -20, 4, 1.5, 3.5], [3, -34, 4, 1.5, -3.5]], water: [[-5, -10, 6, 6], [5, -42, 6, 6]], sand: [[0, -28, 8, 5]] }
-];
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a => {
+    if (!userState.achievements.includes(a.id)) {
+      let unlock = false;
+      if (a.id === 'reach_10' && userState.totalHolesCompleted >= 10) unlock = true;
+      if (a.id === 'rich_golfer' && userState.cash >= 1500) unlock = true;
+      if (a.id === 'gem_collector' && userState.gems >= 10) unlock = true;
+
+      if (unlock) {
+        userState.achievements.push(a.id);
+        userState.cash += a.reward;
+        say(`🏆 Badge Unlocked: ${a.name} (+$${a.reward})`, 2500);
+      }
+    }
+  });
+}
 
 const R = 0.25, STEP = 1 / 180, BASE_MAXV = 32;
 const $ = id => document.getElementById(id);
 
-// --- THREE.JS SETUP ---
+// --- THREE.JS SCENE SETUP ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xa4b0be);
-scene.fog = new THREE.FogExp2(0xa4b0be, 0.012);
-
-const cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 220);
+const cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 300);
 const ren = new THREE.WebGLRenderer({ antialias: true });
 ren.setPixelRatio(Math.min(devicePixelRatio, 2));
 ren.setSize(innerWidth, innerHeight);
@@ -236,12 +439,13 @@ scene.add(new THREE.HemisphereLight(0xffffff, 0x3d8b46, 1.0));
 const sun = new THREE.DirectionalLight(0xfff3d6, 2.0);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -35, right: 35, top: 35, bottom: -35, near: 1, far: 110 });
+Object.assign(sun.shadow.camera, { left: -50, right: 50, top: 50, bottom: -50, near: 1, far: 140 });
 scene.add(sun, sun.target);
 
-// Ground plane
+// Base Ground Plane
 const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o });
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), mat(0x2ed573));
+const groundMat = mat(0x2ed573);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), groundMat);
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.5; ground.receiveShadow = true;
 scene.add(ground);
 
@@ -253,53 +457,150 @@ const M = {
   sand: mat(0xf7d794, { roughness: 0.95 }),
   cup: mat(0x1e272e),
   pole: mat(0xffffff),
-  flag: mat(0xff4757)
+  flag: mat(0xff4757),
+  trunk: mat(0x8b5a2b),
+  foliage: mat(0x10ac84),
+  gem: mat(0x00d2d3, { roughness: 0.2, metalness: 0.8 }),
+  ramp: mat(0x5f27cd)
 };
 
 const level = new THREE.Group(); scene.add(level);
+const decorGroup = new THREE.Group(); scene.add(decorGroup);
+const collectibleGroup = new THREE.Group(); scene.add(collectibleGroup);
 
-// --- BALL MESH ---
+// --- BALL MESH & AIM LINE ---
 const ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
 const ball = new THREE.Mesh(new THREE.SphereGeometry(R, 24, 16), ballMat);
 ball.castShadow = true; scene.add(ball);
 
-// Aim Line
 const aimLine = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
 aimLine.visible = false; scene.add(aimLine);
 
-// --- CHARACTER GOLFER MESH ---
+// --- GOLFER AVATAR RIG ---
 const golferGroup = new THREE.Group();
 const shirtMat = mat(0x2e86de);
 const pantsMat = mat(0x341f97);
 const skinMat = mat(0xffdbac);
 const clubMat = mat(0xc0c0c0);
 
-// Torso
-const torso = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 0.25), shirtMat);
-torso.position.y = 0.7; torso.castShadow = true; golferGroup.add(torso);
-// Head
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), skinMat);
-head.position.y = 1.15; head.castShadow = true; golferGroup.add(head);
-// Cap
-const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 16), shirtMat);
-cap.position.set(0, 1.28, 0.05); golferGroup.add(cap);
-// Legs
-const legL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.18), pantsMat);
-legL.position.set(-0.12, 0.25, 0); legL.castShadow = true; golferGroup.add(legL);
+const torso = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 0.25), shirtMat); torso.position.y = 0.7; torso.castShadow = true; golferGroup.add(torso);
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), skinMat); head.position.y = 1.15; head.castShadow = true; golferGroup.add(head);
+const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 16), shirtMat); cap.position.set(0, 1.28, 0.05); golferGroup.add(cap);
+const legL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.18), pantsMat); legL.position.set(-0.12, 0.25, 0); legL.castShadow = true; golferGroup.add(legL);
 const legR = legL.clone(); legR.position.x = 0.12; golferGroup.add(legR);
-// Arms & Club Pivot Group
-const armsPivot = new THREE.Group();
-armsPivot.position.set(0, 0.85, 0);
-const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 0.12), shirtMat);
-arm.position.set(0.22, -0.2, 0.1); arm.castShadow = true; armsPivot.add(arm);
-// Club Mesh
-const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1), clubMat);
-shaft.position.set(0.22, -0.6, 0.3); shaft.rotation.x = 0.2; armsPivot.add(shaft);
-const headClub = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.2), clubMat);
-headClub.position.set(0.22, -1.1, 0.4); armsPivot.add(headClub);
 
-golferGroup.add(armsPivot);
-scene.add(golferGroup);
+const armsPivot = new THREE.Group(); armsPivot.position.set(0, 0.85, 0);
+const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 0.12), shirtMat); arm.position.set(0.22, -0.2, 0.1); arm.castShadow = true; armsPivot.add(arm);
+const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1), clubMat); shaft.position.set(0.22, -0.6, 0.3); shaft.rotation.x = 0.2; armsPivot.add(shaft);
+const headClub = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.2), clubMat); headClub.position.set(0.22, -1.1, 0.4); armsPivot.add(headClub);
+golferGroup.add(armsPivot); scene.add(golferGroup);
+
+// --- PARTICLE SYSTEM ---
+const particles = [];
+function createParticlePuff(x, y, z, colorHex, count = 20, speedMult = 1.0) {
+  const pMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 });
+  for (let i = 0; i < count; i++) {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.05 + Math.random() * 0.08, 8, 8), pMat);
+    mesh.position.set(x, y, z);
+    scene.add(mesh);
+    particles.push({
+      mesh,
+      vx: (Math.random() - 0.5) * 4 * speedMult,
+      vy: (Math.random() * 5 + 1) * speedMult,
+      vz: (Math.random() - 0.5) * 4 * speedMult,
+      life: 1.0
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt * 2.2;
+    p.mesh.position.x += p.vx * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += p.vz * dt;
+    p.vy -= 9.8 * dt;
+    p.mesh.material.opacity = p.life;
+    if (p.life <= 0) {
+      scene.remove(p.mesh); p.mesh.geometry.dispose(); particles.splice(i, 1);
+    }
+  }
+}
+
+// --- PROCEDURAL INFINITE LEVEL GENERATOR ---
+const THEMES = ['day', 'sunset', 'cyber', 'snow', 'desert', 'volcano'];
+
+function generateProceduralHole(index) {
+  const theme = THEMES[index % THEMES.length];
+  const length = 32 + Math.min(index * 2, 40) + Math.floor(Math.random() * 12);
+  const width = 12 + Math.floor(Math.random() * 6);
+  const par = length > 65 ? 5 : length > 45 ? 4 : 3;
+
+  const obsCount = Math.min(10, Math.floor(2 + index * 0.6));
+  const obs = [];
+  for (let i = 0; i < obsCount; i++) {
+    const z = -10 - (i / obsCount) * (length - 18);
+    const w = 2.5 + Math.random() * (width * 0.45);
+    const speed = (Math.random() > 0.35 ? (1.5 + Math.random() * 2.8) : 0) * (Math.random() > 0.5 ? 1 : -1);
+    obs.push([(Math.random() - 0.5) * (width - w - 2), z, w, 1.2 + Math.random(), speed]);
+  }
+
+  // Water Hazards
+  const waterCount = Math.random() > 0.3 ? Math.floor(1 + Math.random() * 2) : 0;
+  const water = [];
+  for (let i = 0; i < waterCount; i++) {
+    const wz = -12 - Math.random() * (length - 24);
+    const ww = 4 + Math.random() * 4;
+    water.push([(Math.random() - 0.5) * (width - ww - 2), wz, ww, 5 + Math.random() * 4]);
+  }
+
+  // Sand Traps
+  const sand = [];
+  if (Math.random() > 0.2) {
+    const sz = -15 - Math.random() * (length - 25);
+    sand.push([(Math.random() - 0.5) * (width - 6), sz, 5 + Math.random() * 3, 5 + Math.random() * 3]);
+  }
+
+  // Collectible Gems
+  const gems = [];
+  const gemCount = Math.floor(2 + Math.random() * 3);
+  for (let i = 0; i < gemCount; i++) {
+    gems.push([(Math.random() - 0.5) * (width - 4), -8 - Math.random() * (length - 16)]);
+  }
+
+  const cupX = (Math.random() - 0.5) * (width - 4);
+  const cupZ = -length + 3.5;
+  const wind = Math.min(12, 1 + Math.floor(index * 0.5 + Math.random() * 3));
+
+  return {
+    name: `Hole #${index + 1} (${theme.toUpperCase()})`,
+    theme, w: width, l: length, par, tee: [0, -2], cup: [cupX, cupZ],
+    obs, water, sand, gems, wind
+  };
+}
+
+function applyTheme(themeName) {
+  if (themeName === 'sunset') {
+    scene.background.setHex(0xfb923c); scene.fog = new THREE.Fog(0xfb923c, 30, 160);
+    groundMat.color.setHex(0x22c55e); sun.color.setHex(0xffedd5);
+  } else if (themeName === 'cyber') {
+    scene.background.setHex(0x0f172a); scene.fog = new THREE.Fog(0x0f172a, 30, 160);
+    groundMat.color.setHex(0x0284c7); sun.color.setHex(0x38bdf8);
+  } else if (themeName === 'snow') {
+    scene.background.setHex(0xe2e8f0); scene.fog = new THREE.Fog(0xe2e8f0, 30, 160);
+    groundMat.color.setHex(0xc084fc); sun.color.setHex(0xffffff);
+  } else if (themeName === 'desert') {
+    scene.background.setHex(0xfde047); scene.fog = new THREE.Fog(0xfde047, 30, 160);
+    groundMat.color.setHex(0xd97706); sun.color.setHex(0xffedd5);
+  } else if (themeName === 'volcano') {
+    scene.background.setHex(0x450a0a); scene.fog = new THREE.Fog(0x450a0a, 30, 160);
+    groundMat.color.setHex(0x991b1b); sun.color.setHex(0xfca5a5);
+  } else {
+    scene.background.setHex(0xa4b0be); scene.fog = new THREE.Fog(0xa4b0be, 30, 160);
+    groundMat.color.setHex(0x2ed573); sun.color.setHex(0xfff3d6);
+  }
+}
 
 function updateEquipmentVisuals() {
   const bData = SHOP_DATA.balls.find(x => x.id === userState.equippedBall);
@@ -317,10 +618,16 @@ function updateEquipmentVisuals() {
 }
 
 // --- GAME STATE ---
-let solids = [], waters = [], sands = [], dynamicObs = [];
-let hi = 0, strokes = 0, scores = [], mode = 'aim', yaw = 0, sunkT = 0;
+let solids = [], waters = [], sands = [], dynamicObs = [], activeGems = [];
+let currentHoleData = null;
+let hi = 0, strokes = 0, totalStrokes = 0, totalPar = 0, collectedGemsThisRound = 0;
+let mode = 'aim', yaw = 0, sunkT = 0;
 let last = { x: 0, z: 0 }, aim = null, drag = null;
-const b = { x: 0, z: 0, vx: 0, vz: 0 };
+let windDir = 0, windSpeed = 0;
+
+// Active Power-up States
+let laserActive = false, magnetActive = false, ghostActive = false;
+const b = { x: 0, y: R, z: 0, vx: 0, vy: 0, vz: 0 };
 const camKeys = { l: 0, r: 0 };
 
 function box(cx, cz, w, d, h, m, y = 0, solid = false) {
@@ -331,70 +638,89 @@ function box(cx, cz, w, d, h, m, y = 0, solid = false) {
 }
 
 function buildLevel(idx) {
-  level.clear(); solids = []; waters = []; sands = []; dynamicObs = [];
-  const h = HOLES[idx], { w, l } = h, t = 0.6;
+  level.clear(); solids = []; waters = []; sands = []; dynamicObs = []; collectibleGroup.clear();
+  laserActive = false; magnetActive = false; ghostActive = false;
+  deactivatePowerupUI();
 
-  // Main Fairway
+  currentHoleData = generateProceduralHole(idx);
+  const { w, l, par, theme } = currentHoleData, t = 0.6;
+
+  applyTheme(theme);
+
+  // Setup Dynamic Wind
+  windDir = Math.random() * Math.PI * 2;
+  windSpeed = currentHoleData.wind;
+  $('wind-arrow').style.transform = `rotate(${windDir}rad)`;
+  $('wind-speed').textContent = `${windSpeed} mph`;
+
+  // Fairway & Border Walls
   box(0, -l / 2, w, l, 0.5, M.fair, -0.5);
-  // Boundary Walls
   box(0, -l - t / 2, w + 2 * t, t, 0.7, M.wall, 0, true);
   box(0, t / 2, w + 2 * t, t, 0.7, M.wall, 0, true);
   box(-w / 2 - t / 2, -l / 2, t, l, 0.7, M.wall, 0, true);
   box(w / 2 + t / 2, -l / 2, t, l, 0.7, M.wall, 0, true);
 
-  // Obstacles
-  h.obs.forEach(([x, z, ow, od, speed]) => {
+  // Dynamic Obstacles
+  currentHoleData.obs.forEach(([x, z, ow, od, speed]) => {
     const m = box(x, z, ow, od, 0.9, M.obs, 0, true);
     if (speed !== 0) {
-      dynamicObs.push({ mesh: m, origX: x, minX: -w / 2 + ow / 2 + 0.5, maxX: w / 2 - ow / 2 - 0.5, speed, dir: 1, w: ow, d: od, z });
+      dynamicObs.push({ mesh: m, minX: -w / 2 + ow / 2 + 0.5, maxX: w / 2 - ow / 2 - 0.5, speed, dir: 1, w: ow, z });
     }
   });
 
-  // Water Hazards
-  h.water.forEach(([x, z, ow, od]) => {
+  // Hazards
+  currentHoleData.water.forEach(([x, z, ow, od]) => {
     box(x, z, ow, od, 0.05, M.water, -0.02);
     waters.push([x - ow / 2, x + ow / 2, z - od / 2, z + od / 2]);
   });
-
-  // Sand Traps
-  h.sand.forEach(([x, z, ow, od]) => {
+  currentHoleData.sand.forEach(([x, z, ow, od]) => {
     box(x, z, ow, od, 0.04, M.sand, -0.01);
     sands.push([x - ow / 2, x + ow / 2, z - od / 2, z + od / 2]);
   });
 
+  // Collectible Gems 💎
+  activeGems = [];
+  const gemGeo = new THREE.OctahedronGeometry(0.28, 0);
+  currentHoleData.gems.forEach(([gx, gz]) => {
+    const gMesh = new THREE.Mesh(gemGeo, M.gem);
+    gMesh.position.set(gx, 0.45, gz);
+    gMesh.castShadow = true;
+    collectibleGroup.add(gMesh);
+    activeGems.push({ x: gx, z: gz, mesh: gMesh, collected: false });
+  });
+
   // Cup & Flag
   const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.02, 28), M.cup);
-  cup.position.set(h.cup[0], 0.02, h.cup[1]); level.add(cup);
+  cup.position.set(currentHoleData.cup[0], 0.02, currentHoleData.cup[1]); level.add(cup);
 
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3, 8), M.pole);
-  pole.position.set(h.cup[0], 1.5, h.cup[1]); pole.castShadow = true; level.add(pole);
+  pole.position.set(currentHoleData.cup[0], 1.5, currentHoleData.cup[1]); pole.castShadow = true; level.add(pole);
 
   const flag = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 0.04), M.flag);
-  flag.position.set(h.cup[0] + 0.45, 2.7, h.cup[1]); flag.castShadow = true; level.add(flag);
+  flag.position.set(currentHoleData.cup[0] + 0.45, 2.7, currentHoleData.cup[1]); flag.castShadow = true; level.add(flag);
 
   // Tee Marker
   const tee = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.02, 20), M.pole);
-  tee.position.set(h.tee[0], 0.02, h.tee[1]); level.add(tee);
+  tee.position.set(currentHoleData.tee[0], 0.02, currentHoleData.tee[1]); level.add(tee);
 
   sun.position.set(15, 35, -l / 2 + 10);
   sun.target.position.set(0, 0, -l / 2);
 
-  Object.assign(b, { x: h.tee[0], z: h.tee[1], vx: 0, vz: 0 });
+  Object.assign(b, { x: currentHoleData.tee[0], y: R, z: currentHoleData.tee[1], vx: 0, vy: 0, vz: 0 });
   last = { x: b.x, z: b.z }; strokes = 0; mode = 'aim';
   faceCup();
 
-  $('h').textContent = idx + 1;
-  $('p').textContent = h.par;
+  $('h').textContent = `#${idx + 1}`;
+  $('p').textContent = par;
   $('s').textContent = 0;
-  $('t').textContent = fmtScore(totalScore());
+  $('t').textContent = fmtScore(totalStrokes - totalPar);
   saveState();
 }
 
-const totalScore = () => scores.reduce((a, s, i) => a + s - HOLES[i].par, 0);
 const fmtScore = n => n > 0 ? '+' + n : n === 0 ? 'E' : String(n);
 
 function faceCup() {
-  const c = HOLES[hi].cup;
+  const c = currentHoleData.cup;
   yaw = Math.atan2(c[0] - b.x, -(c[1] - b.z));
 }
 
@@ -404,118 +730,159 @@ function say(t, ms = 1800) {
   clearTimeout(msgT); msgT = setTimeout(() => m.classList.remove('on'), ms);
 }
 
+function deactivatePowerupUI() {
+  document.querySelectorAll('.pwr-btn').forEach(btn => btn.classList.remove('active-pwr'));
+}
+
 // --- PHYSICS ENGINE ---
 function physics(dt) {
-  const h = HOLES[hi];
-
-  // Update Dynamic Moving Obstacles
+  // Move Dynamic Obstacles
   dynamicObs.forEach(o => {
     o.mesh.position.x += o.speed * o.dir * dt;
     if (o.mesh.position.x > o.maxX) { o.mesh.position.x = o.maxX; o.dir = -1; }
     if (o.mesh.position.x < o.minX) { o.mesh.position.x = o.minX; o.dir = 1; }
-
-    // Sync solid boundaries
     const s = solids.find(item => item.mesh === o.mesh);
-    if (s) {
-      s.minX = o.mesh.position.x - o.w / 2;
-      s.maxX = o.mesh.position.x + o.w / 2;
+    if (s) { s.minX = o.mesh.position.x - o.w / 2; s.maxX = o.mesh.position.x + o.w / 2; }
+  });
+
+  // Spin Collectible Gems
+  activeGems.forEach(g => {
+    if (!g.collected) {
+      g.mesh.rotation.y += 2.5 * dt;
+      // Check collision with ball
+      if (Math.hypot(b.x - g.x, b.z - g.z) < 0.6) {
+        g.collected = true;
+        collectibleGroup.remove(g.mesh);
+        userState.gems++; collectedGemsThisRound++;
+        sfx.playCoin(); createParticlePuff(g.x, 0.5, g.z, 0x00d2d3, 15);
+        say('💎 Collected Gem (+1 Gem!)', 1200);
+        saveState();
+      }
     }
   });
 
   if (mode === 'roll') {
-    b.x += b.vx * dt; b.z += b.vz * dt;
+    // Apply 3D Vertical Jump Physics
+    if (b.y > R || b.vy !== 0) {
+      b.y += b.vy * dt;
+      b.vy -= 18.0 * dt; // Gravity
+      if (b.y <= R) { b.y = R; b.vy = 0; sfx.playBounce(); }
+    }
 
-    // Solid Collisions
-    for (const s of solids) {
-      const cx = Math.max(s.minX, Math.min(b.x, s.maxX)), cz = Math.max(s.minZ, Math.min(b.z, s.maxZ));
-      const dx = b.x - cx, dz = b.z - cz, d = Math.hypot(dx, dz);
-      if (d >= R) continue;
+    // Apply Wind Force
+    const wx = Math.sin(windDir) * windSpeed * 0.18;
+    const wz = -Math.cos(windDir) * windSpeed * 0.18;
+    b.vx += wx * dt; b.vz += wz * dt;
 
-      let nx, nz;
-      if (d > 1e-6) {
-        nx = dx / d; nz = dz / d; b.x = cx + nx * R; b.z = cz + nz * R;
-      } else {
-        const m = [b.x - s.minX, s.maxX - b.x, b.z - s.minZ, s.maxZ - b.z], k = m.indexOf(Math.min(...m));
-        nx = k == 0 ? -1 : k == 1 ? 1 : 0; nz = k == 2 ? -1 : k == 3 ? 1 : 0;
-        if (k == 0) b.x = s.minX - R; if (k == 1) b.x = s.maxX + R;
-        if (k == 2) b.z = s.minZ - R; if (k == 3) b.z = s.maxZ + R;
-      }
-      const vn = b.vx * nx + b.vz * nz;
-      if (vn < 0) {
-        b.vx -= 1.75 * vn * nx; b.vz -= 1.75 * vn * nz;
-        sfx.playBounce();
+    // Magnet Powerup Cup Attraction
+    if (magnetActive) {
+      const dx = currentHoleData.cup[0] - b.x, dz = currentHoleData.cup[1] - b.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist < 8.0) {
+        b.vx += (dx / dist) * 12.0 * dt;
+        b.vz += (dz / dist) * 12.0 * dt;
       }
     }
 
-    // Water Hazard Penalty
-    if (waters.some(r => b.x > r[0] && b.x < r[1] && b.z > r[2] && b.z < r[3])) {
+    b.x += b.vx * dt; b.z += b.vz * dt;
+
+    // Trail Emission FX
+    const tData = SHOP_DATA.trails.find(x => x.id === userState.equippedTrail);
+    if (tData && tData.id !== 't_none' && Math.hypot(b.vx, b.vz) > 1.0) {
+      if (Math.random() > 0.4) createParticlePuff(b.x, b.y, b.z, tData.color, 1, 0.2);
+    }
+
+    // Solid Collisions (Ignored if Ghost Mode active)
+    if (!ghostActive && b.y <= R + 0.1) {
+      for (const s of solids) {
+        const cx = Math.max(s.minX, Math.min(b.x, s.maxX)), cz = Math.max(s.minZ, Math.min(b.z, s.maxZ));
+        const dx = b.x - cx, dz = b.z - cz, d = Math.hypot(dx, dz);
+        if (d >= R) continue;
+
+        let nx, nz;
+        if (d > 1e-6) { nx = dx / d; nz = dz / d; b.x = cx + nx * R; b.z = cz + nz * R; }
+        else {
+          const m = [b.x - s.minX, s.maxX - b.x, b.z - s.minZ, s.maxZ - b.z], k = m.indexOf(Math.min(...m));
+          nx = k == 0 ? -1 : k == 1 ? 1 : 0; nz = k == 2 ? -1 : k == 3 ? 1 : 0;
+          if (k == 0) b.x = s.minX - R; if (k == 1) b.x = s.maxX + R;
+          if (k == 2) b.z = s.minZ - R; if (k == 3) b.z = s.maxZ + R;
+        }
+        const vn = b.vx * nx + b.vz * nz;
+        if (vn < 0) {
+          b.vx -= 1.75 * vn * nx; b.vz -= 1.75 * vn * nz;
+          sfx.playBounce();
+        }
+      }
+    }
+
+    // Water Hazard
+    if (b.y <= R + 0.1 && waters.some(r => b.x > r[0] && b.x < r[1] && b.z > r[2] && b.z < r[3])) {
       strokes++; $('s').textContent = strokes;
-      sfx.playSplash();
-      say('Splash! +1 Stroke');
-      Object.assign(b, { x: last.x, z: last.z, vx: 0, vz: 0 });
+      sfx.playSplash(); createParticlePuff(b.x, 0.1, b.z, 0x38ada9, 25);
+      say('Splash! +1 Penalty Stroke');
+      Object.assign(b, { x: last.x, y: R, z: last.z, vx: 0, vy: 0, vz: 0 });
       mode = 'aim'; return;
     }
 
     // Sand Drag
     let dragCoef = 0.75, friction = 1.0;
-    if (sands.some(r => b.x > r[0] && b.x < r[1] && b.z > r[2] && b.z < r[3])) {
-      dragCoef = 3.5; friction = 4.0;
+    if (b.y <= R + 0.1 && sands.some(r => b.x > r[0] && b.x < r[1] && b.z > r[2] && b.z < r[3])) {
+      dragCoef = 3.8; friction = 4.5;
+      if (Math.hypot(b.vx, b.vz) > 2.0) createParticlePuff(b.x, 0.05, b.z, 0xf7d794, 2);
     }
 
     const sp = Math.hypot(b.vx, b.vz);
-    // Hole Cup Collision
-    if (Math.hypot(b.x - h.cup[0], b.z - h.cup[1]) < 0.42 && sp < 9) {
+    // Hole Sink Check
+    if (Math.hypot(b.x - currentHoleData.cup[0], b.z - currentHoleData.cup[1]) < 0.45 && sp < 10.0 && b.y <= R + 0.1) {
       mode = 'sink'; sunkT = 0;
-      sfx.playSink();
+      sfx.playSink(); createParticlePuff(currentHoleData.cup[0], 0.2, currentHoleData.cup[1], 0xffa502, 40);
       return;
     }
 
     const ns = Math.max(0, sp * Math.exp(-dragCoef * dt) - friction * dt);
-    if (ns < 0.1) {
-      b.vx = b.vz = 0; mode = 'aim';
-    } else {
-      b.vx *= ns / sp; b.vz *= ns / sp;
-    }
+    if (ns < 0.1 && b.y <= R) { b.vx = b.vz = 0; mode = 'aim'; }
+    else if (sp > 0) { b.vx *= ns / sp; b.vz *= ns / sp; }
   } else if (mode === 'sink') {
     sunkT += dt;
-    b.x += (h.cup[0] - b.x) * Math.min(1, dt * 10);
-    b.z += (h.cup[1] - b.z) * Math.min(1, dt * 10);
+    b.x += (currentHoleData.cup[0] - b.x) * Math.min(1, dt * 10);
+    b.z += (currentHoleData.cup[1] - b.z) * Math.min(1, dt * 10);
     if (sunkT > 1.2) finishHole();
   }
 }
 
 function finishHole() {
-  mode = 'done'; scores[hi] = strokes;
-  const diff = strokes - HOLES[hi].par;
+  mode = 'done';
+  userState.totalHolesCompleted++;
+  totalStrokes += strokes;
+  totalPar += currentHoleData.par;
 
-  // Reward Money Logic
-  let reward = Math.max(50, 150 - diff * 40);
-  if (strokes === 1) reward += 200; // Hole in one bonus!
+  const diff = strokes - currentHoleData.par;
+  let reward = Math.max(60, 180 - diff * 40);
+  if (strokes === 1) {
+    reward += 300;
+    if (!userState.achievements.includes('hole_in_one')) userState.achievements.push('hole_in_one');
+  }
+  if (!userState.achievements.includes('first_sink')) userState.achievements.push('first_sink');
+
   userState.cash += reward;
   saveState();
 
-  const title = strokes === 1 ? 'Hole in One! +$' + reward :
+  const title = strokes === 1 ? 'Ace! Hole in One! +$' + reward :
                 diff <= -2 ? 'Eagle! +$' + reward :
                 diff === -1 ? 'Birdie! +$' + reward :
                 diff === 0 ? 'Par! +$' + reward : '+$' + reward;
 
-  say(title, 1800);
-  $('t').textContent = fmtScore(totalScore());
+  say(title, 2000);
+  $('t').textContent = fmtScore(totalStrokes - totalPar);
 
-  setTimeout(() => {
-    if (hi < HOLES.length - 1) {
-      hi++; buildLevel(hi);
-    } else {
-      showScoreCard();
-    }
-  }, 1800);
+  setTimeout(() => showScoreCard(reward), 1500);
 }
 
-function showScoreCard() {
-  const rows = HOLES.map((h, i) => `<tr><td>${i + 1}</td><td>${h.par}</td><td>${scores[i] || '-'}</td></tr>`).join('');
-  $('card-rows').innerHTML = rows;
-  $('card-title').textContent = `Course Complete: ${fmtScore(totalScore())}`;
-  $('card-payout').textContent = `Total Cash: $${userState.cash}`;
+function showScoreCard(reward) {
+  const row = `<tr><td>#${hi + 1}</td><td>${currentHoleData.par}</td><td>${strokes}</td><td>💎${collectedGemsThisRound}</td></tr>`;
+  $('card-rows').innerHTML = row;
+  $('card-title').textContent = `Hole #${hi + 1} Completed!`;
+  $('card-payout').textContent = `Earned +$${reward} • Total Cash: $${userState.cash}`;
   $('card').classList.add('on');
 }
 
@@ -553,7 +920,6 @@ const releaseShot = () => {
     strokes++; $('s').textContent = strokes;
     mode = 'roll';
 
-    // Animate Golf Swing
     armsPivot.rotation.x = -Math.PI / 3;
     sfx.playHit(aim.p);
   }
@@ -572,6 +938,76 @@ const bindHold = (id, k) => {
 bindHold('l', 'l'); bindHold('r', 'r');
 $('re-center').onclick = () => { sfx.init(); faceCup(); };
 
+// --- POWERUPS IMPLEMENTATION ---
+$('pwr-brake').onclick = () => {
+  sfx.init();
+  if (mode === 'roll' && userState.cash >= 25) {
+    userState.cash -= 25; saveState();
+    b.vx = b.vz = 0; mode = 'aim';
+    say('🛑 Instant Brake Applied!');
+    createParticlePuff(b.x, 0.1, b.z, 0xff4757, 15);
+  } else if (mode !== 'roll') { say('Use while ball is rolling!'); }
+  else { say('Not enough cash!'); }
+};
+
+$('pwr-laser').onclick = () => {
+  sfx.init();
+  if (userState.cash >= 40 && !laserActive) {
+    userState.cash -= 40; saveState();
+    laserActive = true; $('pwr-laser').classList.add('active-pwr');
+    say('🎯 Precision Laser Active!');
+  } else if (laserActive) { say('Laser already active!'); }
+  else { say('Not enough cash!'); }
+};
+
+$('pwr-magnet').onclick = () => {
+  sfx.init();
+  if (userState.cash >= 60 && !magnetActive) {
+    userState.cash -= 60; saveState();
+    magnetActive = true; $('pwr-magnet').classList.add('active-pwr');
+    say('🧲 Cup Magnet Engaged!');
+  } else if (magnetActive) { say('Magnet active!'); }
+  else { say('Not enough cash!'); }
+};
+
+$('pwr-jump').onclick = () => {
+  sfx.init();
+  if (mode === 'roll' && userState.cash >= 50) {
+    userState.cash -= 50; saveState();
+    b.vy = 7.5; sfx.playJump();
+    say('🚀 Air Bounce Jump!');
+    createParticlePuff(b.x, b.y, b.z, 0x00d2d3, 15);
+  } else if (mode !== 'roll') { say('Use while ball is moving!'); }
+  else { say('Not enough cash!'); }
+};
+
+$('pwr-ghost').onclick = () => {
+  sfx.init();
+  if (userState.cash >= 75 && !ghostActive) {
+    userState.cash -= 75; saveState();
+    ghostActive = true; $('pwr-ghost').classList.add('active-pwr');
+    say('👻 Ghost Phase Active!');
+  } else if (ghostActive) { say('Ghost mode active!'); }
+  else { say('Not enough cash!'); }
+};
+
+$('pwr-mulligan').onclick = () => {
+  sfx.init();
+  if (strokes > 0 && userState.cash >= 90) {
+    userState.cash -= 90; strokes--;
+    $('s').textContent = strokes; saveState();
+    Object.assign(b, { x: last.x, y: R, z: last.z, vx: 0, vy: 0, vz: 0 });
+    mode = 'aim'; say('↺ Shot Undone (Mulligan)');
+  } else if (strokes === 0) { say('No shots taken yet!'); }
+  else { say('Not enough cash!'); }
+};
+
+$('mute-btn').onclick = () => {
+  sfx.muted = !sfx.muted;
+  $('mute-btn').textContent = sfx.muted ? '🔇' : '🔊';
+};
+
+// Keyboard Hotkeys
 addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a') camKeys.l = 1;
   if (e.key === 'ArrowRight' || e.key === 'd') camKeys.r = 1;
@@ -587,16 +1023,15 @@ addEventListener('resize', () => {
   ren.setSize(innerWidth, innerHeight);
 });
 
-// --- SHOP UI SYSTEM ---
+// --- SHOP & ACHIEVEMENTS MODALS ---
 let activeTab = 'balls';
 function renderShop() {
-  const container = $('shop-items');
-  container.innerHTML = '';
+  const container = $('shop-items'); container.innerHTML = '';
   const items = SHOP_DATA[activeTab];
 
   items.forEach(item => {
     const isOwned = userState.owned.includes(item.id);
-    const isEquipped = userState.equippedBall === item.id || userState.equippedClub === item.id || userState.equippedGolfer === item.id;
+    const isEquipped = userState.equippedBall === item.id || userState.equippedClub === item.id || userState.equippedGolfer === item.id || userState.equippedTrail === item.id;
 
     const div = document.createElement('div');
     div.className = `shop-item ${isEquipped ? 'selected' : ''}`;
@@ -613,16 +1048,10 @@ function renderShop() {
       sfx.init();
       if (!isOwned) {
         if (userState.cash >= item.price) {
-          userState.cash -= item.price;
-          userState.owned.push(item.id);
-          equipItem(activeTab, item.id);
-          sfx.playBuy();
-        } else {
-          say('Not enough cash!', 1200);
-        }
-      } else {
-        equipItem(activeTab, item.id);
-      }
+          userState.cash -= item.price; userState.owned.push(item.id);
+          equipItem(activeTab, item.id); sfx.playBuy();
+        } else { say('Not enough cash!', 1200); }
+      } else { equipItem(activeTab, item.id); }
       saveState(); renderShop(); updateEquipmentVisuals();
     };
     container.appendChild(div);
@@ -633,22 +1062,47 @@ function equipItem(category, id) {
   if (category === 'balls') userState.equippedBall = id;
   if (category === 'clubs') userState.equippedClub = id;
   if (category === 'golfers') userState.equippedGolfer = id;
+  if (category === 'trails') userState.equippedTrail = id;
+}
+
+function renderAchievements() {
+  const container = $('achieve-items'); container.innerHTML = '';
+  ACHIEVEMENTS.forEach(a => {
+    const isDone = userState.achievements.includes(a.id);
+    const div = document.createElement('div');
+    div.className = `achieve-card ${isDone ? 'done' : ''}`;
+    div.innerHTML = `
+      <div class="achieve-info">
+        <h4>${a.name} ${isDone ? '✅' : ''}</h4>
+        <p>${a.desc}</p>
+      </div>
+      <div style="font-weight:bold;color:var(--gold)">+$${a.reward}</div>
+    `;
+    container.appendChild(div);
+  });
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.onclick = e => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-    activeTab = e.target.dataset.tab;
+    e.target.classList.add('active'); activeTab = e.target.dataset.tab;
     renderShop();
   };
 });
 
 $('open-shop').onclick = () => { sfx.init(); renderShop();$('shop').classList.add('on'); };
-$('close-shop').onclick = () =>$('shop').classList.remove('on');
-$('again').onclick = () => {$('card').classList.remove('on'); scores = []; hi = 0; buildLevel(0); };
+$('open-achieve').onclick = () => { sfx.init(); renderAchievements();$('achieve-modal').classList.add('on'); };
+document.querySelectorAll('.close-modal').forEach(btn => {
+  btn.onclick = () => {
+    $('shop').classList.remove('on');$('achieve-modal').classList.remove('on');
+  };
+});
+$('again').onclick = () => {$('card').classList.remove('on');
+  collectedGemsThisRound = 0;
+  hi++; buildLevel(hi);
+};
 
-// --- RENDER & ANIMATION LOOP ---
+// --- ANIMATION & RENDER LOOP ---
 const tv = new THREE.Vector3(), look = new THREE.Vector3();
 let prev = performance.now(), acc = 0;
 
@@ -656,33 +1110,32 @@ function tick(now) {
   const dt = Math.min((now - prev) / 1000, 0.05); prev = now; acc += dt;
   while (acc >= STEP) { physics(STEP); acc -= STEP; }
 
+  updateParticles(dt);
   yaw += (camKeys.r - camKeys.l) * 1.8 * dt;
 
-  // Ball Y positioning
-  const ballY = mode === 'sink' ? Math.max(-0.4, R - sunkT * 1.2) : R;
-  ball.position.set(b.x, ballY, b.z);
+  const renderY = mode === 'sink' ? Math.max(-0.4, R - sunkT * 1.2) : b.y;
+  ball.position.set(b.x, renderY, b.z);
 
-  // Position Golfer next to ball
+  // Position Golfer Avatar
   const { f, r } = dirs();
-  golferGroup.position.set(b.x - r[0] * 0.45, 0, b.z - r[1] * 0.45);
+  golferGroup.position.set(b.x - r[0] * 0.45, Math.max(0, b.y - R), b.z - r[1] * 0.45);
   golferGroup.rotation.y = yaw + Math.PI / 2;
 
-  // Smoothly return arms pivot after hit
   armsPivot.rotation.x = THREE.MathUtils.lerp(armsPivot.rotation.x, 0, dt * 8);
 
-  // Camera Follow Smoothness
-  tv.set(b.x - f[0] * 9, 5.5, b.z - f[1] * 9);
+  // Smooth Camera Follow
+  tv.set(b.x - f[0] * 9, 5.5 + Math.max(0, b.y * 0.5), b.z - f[1] * 9);
   cam.position.lerp(tv, 1 - Math.exp(-6 * dt));
-  look.set(b.x + f[0] * 3, 0, b.z + f[1] * 3);
+  look.set(b.x + f[0] * 3, b.y * 0.3, b.z + f[1] * 3);
   cam.lookAt(look);
 
-  // Aim Line & Power Gauge
+  // Aim / Trajectory Line
   if (aim && mode === 'aim') {
-    const len = 0.8 + aim.p * 7;
+    const len = laserActive ? 18 : 0.8 + aim.p * 7;
     aimLine.visible = true; aimLine.scale.z = len;
     aimLine.position.set(b.x + aim.x * len / 2, 0.08, b.z + aim.z * len / 2);
     aimLine.rotation.y = Math.atan2(aim.x, aim.z);
-    aimLine.material.color.setHSL((1 - aim.p) * 0.35, 0.9, 0.55);
+    aimLine.material.color.setHSL(laserActive ? 0.5 : (1 - aim.p) * 0.35, 0.95, 0.55);
     $('pw').firstElementChild.style.width = (aim.p * 100) + '%';
   } else {
     aimLine.visible = false;
@@ -693,7 +1146,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-// Initial Boot
+// Initial Launch
 updateEquipmentVisuals();
 buildLevel(0);
 saveState();
